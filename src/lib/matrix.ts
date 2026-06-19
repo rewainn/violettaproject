@@ -94,6 +94,19 @@ export function calculateCompatibilityMatrix(p1: Record<number, number>, p2: Rec
     return c;
 }
 
+export function calculateAdditionalDestinyPoints(basePoints: Record<number, number>) {
+    const p: Record<number, number> = {};
+    p[31] = reduceTo22(basePoints[2] + basePoints[4]);
+    p[32] = reduceTo22(basePoints[1] + basePoints[3]);
+    p[33] = reduceTo22(p[31] + p[32]);
+    p[34] = reduceTo22(basePoints[6] + basePoints[8]);
+    p[35] = reduceTo22(basePoints[7] + basePoints[9]);
+    p[36] = reduceTo22(p[34] + p[35]);
+    p[37] = reduceTo22(p[33] + p[36]);
+    p[38] = reduceTo22(p[36] + p[37]);
+    return p;
+}
+
 export const outlineColorsByPoint: Record<number, string> = {
     1: "#AE8FBE", 2: "#AE8FBE", 3: "#C75A5A", 4: "#C75A5A", 5: "#FFFEBC",
     10: "#A3B0E0", 12: "#A3B0E0", 14: "#F2B57D", 16: "#F2B57D",

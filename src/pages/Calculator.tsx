@@ -8,6 +8,7 @@ import {
   calculateMatrixOfDestiny,
   calculateMatrixOfYear,
   calculateCompatibilityMatrix,
+  reduceTo22,
   outlineColorsByPoint,
   defaultOutlineColor,
   destinyPositions,
@@ -20,6 +21,10 @@ type Tab = "Матрица судьбы" | "Матрица года" | "Совм
 
 export function Calculator() {
   const [activeTab, setActiveTab] = useState<Tab>("Матрица судьбы");
+  const [prognosticsEnabled, setPrognosticsEnabled] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.localStorage.getItem("prognosticsEnabled") === "true";
+  });
   
   const [destinyPoints, setDestinyPoints] = useState<Record<number, number> | null>(null);
   const [yearPoints, setYearPoints] = useState<Record<number, number> | null>(null);
@@ -32,6 +37,10 @@ export function Calculator() {
     setCompatibilityData(null);
     setCompView(0);
   }, [activeTab]);
+
+  useEffect(() => {
+    window.localStorage.setItem("prognosticsEnabled", String(prognosticsEnabled));
+  }, [prognosticsEnabled]);
 
   useEffect(() => {
     const preventContextMenu = (event: MouseEvent) => {
@@ -146,7 +155,29 @@ export function Calculator() {
                      compView === 0 ? "Первый партнер" : compView === 1 ? "Второй партнер" : "Матрица совместимости"
                   )}
                 </h3>
-  
+
+                {activeTab === "Матрица судьбы" && (
+                  <div className="flex items-center gap-3 rounded-full bg-white px-4 py-2 text-sm text-pine-800 shadow-sm ring-1 ring-pine-900/10">
+                    <span className="whitespace-nowrap font-medium leading-none">Прогностика</span>
+                    <button
+                      type="button"
+                      aria-pressed={prognosticsEnabled}
+                      onClick={() => setPrognosticsEnabled((value) => !value)}
+                      className={cn(
+                        "relative inline-flex h-8 w-14 shrink-0 items-center rounded-full p-1 transition-colors duration-200",
+                        prognosticsEnabled ? "bg-sand-300" : "bg-pine-900/12"
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "h-6 w-6 rounded-full bg-white shadow-sm transition-transform duration-200",
+                          prognosticsEnabled ? "translate-x-6" : "translate-x-0"
+                        )}
+                      />
+                    </button>
+                  </div>
+                )}
+
                 {activeTab === "Совместимость" && (
                   <div className="flex items-center space-x-3 text-sm text-pine-900 align-end justify-end">
                     <button 
@@ -173,7 +204,7 @@ export function Calculator() {
                  <div className="absolute inset-0 bg-sand-50/50 pointer-events-none" style={{ backgroundImage: "radial-gradient(circle at center, transparent 30%, rgba(244, 240, 232, 0.4) 100%)" }} />
                  
                  {activeTab === "Матрица судьбы" && (
-                   <MatrixCanvas points={destinyPoints || {}} mode="destiny" />
+                   <MatrixCanvas points={destinyPoints || {}} mode="destiny" prognosticsEnabled={prognosticsEnabled} />
                  )}
                  {activeTab === "Матрица года" && (
                    <MatrixCanvas points={yearPoints || {}} mode="year" />
@@ -461,10 +492,183 @@ function CalculationSummary({ children, summaryKey }: { children: ReactNode; sum
 
 // -------- Visual Matrix Renderer --------
 
-function MatrixCanvas({ points, mode }: { points: Record<number, number>, mode: "destiny" | "year" | "compatibility" }) {
+function MatrixCanvas({ points, mode, prognosticsEnabled = false }: { points: Record<number, number>, mode: "destiny" | "year" | "compatibility", prognosticsEnabled?: boolean }) {
   const isYearMode = mode === "year";
   const connections = isYearMode ? yearConnections : destinyConnections;
   const positions = isYearMode ? yearPositions : destinyPositions;
+  const prognosticSegments: [number, number][] = [
+    [1, 6],
+    [6, 2],
+    [2, 7],
+    [7, 3],
+    [3, 8],
+    [8, 4],
+    [4, 9],
+    [9, 1]
+  ];
+  const renderAgeOverlay = () => {
+    if (mode === "year") return null;
+
+    const shouldRenderPrognostics = prognosticsEnabled && mode === "destiny";
+    const segmentLabels = [
+      ["1–2", "2–3", "3–4", "5 ЛЕТ", "6–7", "7–8", "8–9"],
+      ["11–12", "12–13", "13–14", "15 ЛЕТ", "16–17", "17–18", "18–19"],
+      ["21–22", "22–23", "23–24", "25 ЛЕТ", "26–27", "27–28", "28–29"],
+      ["31–32", "32–33", "33–34", "35 ЛЕТ", "36–37", "37–38", "38–39"],
+      ["41–42", "42–43", "43–44", "45 ЛЕТ", "46–47", "47–48", "48–49"],
+      ["51–52", "52–53", "53–54", "55 ЛЕТ", "56–57", "57–58", "58–59"],
+      ["61–62", "62–63", "63–64", "65 ЛЕТ", "66–67", "67–68", "68–69"],
+      ["71–72", "72–73", "73–74", "75 ЛЕТ", "76–77", "77–78", "78–79"]
+    ];
+
+    return (
+      <g>
+        {shouldRenderPrognostics &&
+          prognosticSegments.map(([startId, endId], idx) => {
+            const startPos = destinyPositions[startId];
+            const endPos = destinyPositions[endId];
+            if (!startPos || !endPos) return null;
+
+            const reverseText = [[2, 7], [7, 3], [3, 8], [8, 4]].some(([a, b]) => a === startId && b === endId);
+            const dx = endPos.x - startPos.x;
+            const dy = endPos.y - startPos.y;
+            const segLen = Math.sqrt(dx * dx + dy * dy) || 1;
+            const ux = dx / segLen;
+            const uy = dy / segLen;
+            const mx = (startPos.x + endPos.x) / 2;
+            const my = (startPos.y + endPos.y) / 2;
+            const offsets = [-75, -50, -25, 0, 25, 50, 75];
+            const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+            const center = { x: 400, y: 400 };
+            const vx = center.x - mx;
+            const vy = center.y - my;
+            const vLen = Math.sqrt(vx * vx + vy * vy) || 1;
+            const vxUnit = vx / vLen;
+            const vyUnit = vy / vLen;
+            const ageBaseOffset = 27;
+            const ageCentralOffset = 40;
+            const calcBaseOffset = 15;
+            const calcCentralOffset = 15;
+            const labels = segmentLabels[idx] || [];
+            const p1 = points[startId];
+            const p2 = points[endId];
+            const calcLabels = p1 != null && p2 != null
+              ? (() => {
+                  const d = reduceTo22(p1 + p2);
+                  const b = reduceTo22(p1 + d);
+                  const a = reduceTo22(p1 + b);
+                  const c = reduceTo22(b + d);
+                  const f = reduceTo22(d + p2);
+                  const g = reduceTo22(f + p2);
+                  const e = reduceTo22(f + d);
+                  return [a, b, c, d, e, f, g];
+                })()
+              : [];
+
+            return (
+              <g key={`prognostic-${startId}-${endId}-${idx}`}>
+                {offsets.map((off, markerIndex) => {
+                  const markerX = mx + off * ux;
+                  const markerY = my + off * uy;
+                  const markerRadius = off === 0 ? 5 : 3;
+                  const labelText = labels[markerIndex];
+                  const ageTextOffset = off === 0 ? ageCentralOffset : ageBaseOffset;
+                  const ageTextX = markerX + ageTextOffset * vxUnit;
+                  const ageTextY = markerY + ageTextOffset * vyUnit;
+                  const calcTextOffset = off === 0 ? calcCentralOffset : calcBaseOffset;
+                  const calcTextX = markerX - calcTextOffset * vxUnit;
+                  const calcTextY = markerY - calcTextOffset * vyUnit;
+                  const rotAngle = angle + 90 + (reverseText ? 180 : 0);
+                  const calcValue = calcLabels[markerIndex];
+
+                  return (
+                    <g key={`${startId}-${endId}-${off}`}>
+                      <circle cx={markerX} cy={markerY} r={markerRadius} fill="#DFC4C9" />
+                      <text
+                        x={ageTextX}
+                        y={ageTextY}
+                        fill="#B98995"
+                        fontSize={off === 0 ? 10 : 8}
+                        fontWeight={off === 0 ? 700 : 600}
+                        textAnchor={reverseText ? "start" : "end"}
+                        transform={`rotate(${rotAngle}, ${ageTextX}, ${ageTextY})`}
+                        style={{ fontFamily: "'Montserrat', sans-serif" }}
+                      >
+                        {labelText}
+                      </text>
+                      {calcValue != null && (
+                        <text
+                          x={calcTextX}
+                          y={calcTextY}
+                          fill="#afa59e"
+                        fontSize={off === 0 ? 20 : 12}
+                          fontWeight={off === 0 ? 700 : 600}
+                          textAnchor={reverseText ? "start" : "end"}
+                          transform={`rotate(${rotAngle}, ${calcTextX}, ${calcTextY})`}
+                          style={{ fontFamily: "'Montserrat', sans-serif" }}
+                        >
+                          {calcValue}
+                        </text>
+                      )}
+                    </g>
+                  );
+                })}
+              </g>
+            );
+          })}
+
+        {shouldRenderPrognostics &&
+          [6, 7, 8, 9].map((id) => {
+            const pos = destinyPositions[id];
+            if (!pos) return null;
+            const ageText = id === 6 ? "10 ЛЕТ" : id === 7 ? "30 ЛЕТ" : id === 8 ? "50 ЛЕТ" : "70 ЛЕТ";
+            const offset = id === 6 || id === 9 ? -28 : 28;
+            const dy = id === 6 || id === 7 ? -28 : 28;
+            const anchor = id === 6 || id === 9 ? "end" : "start";
+
+            return (
+              <text
+                key={`age-${id}`}
+                x={pos.x + offset}
+                y={pos.y + dy}
+                fill="#B98995"
+                fontSize={18}
+                fontWeight={700}
+                textAnchor={anchor}
+                style={{ fontFamily: "'Montserrat', sans-serif" }}
+              >
+                {ageText}
+              </text>
+            );
+          })}
+
+        <text
+          x={destinyPositions[29].x - 26}
+          y={destinyPositions[29].y - 44}
+          fill="#9DBC78"
+          fontSize={22}
+          fontWeight={400}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          style={{ fontFamily: "'Montserrat', sans-serif" }}
+        >
+          $
+        </text>
+        <text
+          x={destinyPositions[30].x - 26}
+          y={destinyPositions[30].y - 44}
+          fill="#EFA1A1"
+          fontSize={28}
+          fontWeight={700}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          style={{ fontFamily: "'Montserrat', sans-serif" }}
+        >
+          ♥
+        </text>
+      </g>
+    );
+  };
   
   return (
     <motion.div 
@@ -473,7 +677,7 @@ function MatrixCanvas({ points, mode }: { points: Record<number, number>, mode: 
       transition={{ duration: 0.8, ease: "easeOut" }}
       className="relative w-full h-full max-w-[500px] mx-auto aspect-square p-2 md:p-4"
     >
-      <svg viewBox="0 0 800 800" className="w-full h-full drop-shadow-sm select-none" preserveAspectRatio="xMidYMid meet">
+      <svg viewBox="0 0 800 800" className="w-full h-full drop-shadow-sm" preserveAspectRatio="xMidYMid meet">
         {/* Draw edges */}
         {connections.map(([a, b], idx) => {
           const pA = positions[a];
@@ -533,6 +737,7 @@ function MatrixCanvas({ points, mode }: { points: Record<number, number>, mode: 
                 </g>
             )
         })}
+        {renderAgeOverlay()}
       </svg>
     </motion.div>
   );
