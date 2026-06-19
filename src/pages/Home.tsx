@@ -1,4 +1,4 @@
-import { motion, useScroll, useTransform } from "motion/react";
+import { motion } from "motion/react";
 import { Link, useNavigate } from "react-router-dom";
 import { Sparkles, ArrowRight, Star, Heart, Compass, History, Sun, BookOpen, ChevronLeft, ChevronRight, Instagram, Award, UserRoundCheck, TrendingUp, GraduationCap, Gem } from "lucide-react";
 import { useRef } from "react";
@@ -6,10 +6,6 @@ import { ContactSection } from "../components/ContactSection";
 
 export function Home() {
   const navigate = useNavigate();
-  const { scrollYProgress } = useScroll();
-  const y1 = useTransform(scrollYProgress, [0, 1], [0, 200]);
-  const y2 = useTransform(scrollYProgress, [0, 1], [0, -100]);
-  
   const reviewsScrollRef = useRef<HTMLDivElement>(null);
 
   const scrollReviews = (direction: 'left' | 'right') => {
@@ -24,29 +20,6 @@ export function Home() {
 
   const openContactModal = () => {
     navigate({ hash: "#contact" });
-  };
-
-  const compatibilityCardContainer = {
-    hidden: {},
-    show: {
-      transition: {
-        staggerChildren: 0.09,
-        delayChildren: 0.08
-      }
-    }
-  };
-
-  const compatibilityCardItem = {
-    hidden: { opacity: 0, y: 18, scale: 0.98 },
-    show: {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      transition: {
-        duration: 0.45,
-        ease: "easeOut"
-      }
-    }
   };
 
   const serviceCards = [
@@ -155,8 +128,8 @@ export function Home() {
     <div className="w-full relative">
       {/* Decorative Background Elements */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none -z-10">
-        <motion.div style={{ y: y1 }} className="absolute -top-32 -right-32 w-[600px] h-[600px] bg-gold-200/30 rounded-full blur-[100px] mix-blend-multiply" />
-        <motion.div style={{ y: y2 }} className="absolute top-[40%] -left-32 w-[500px] h-[500px] bg-pine-200/20 rounded-full blur-[100px] mix-blend-multiply" />
+        <div className="absolute -top-32 -right-32 w-[520px] h-[520px] bg-gold-200/20 rounded-full blur-[70px] mix-blend-multiply" />
+        <div className="absolute top-[40%] -left-32 w-[420px] h-[420px] bg-pine-200/15 rounded-full blur-[70px] mix-blend-multiply" />
       </div>
 
       {/* Hero Section */}
@@ -211,8 +184,6 @@ export function Home() {
             <div className="absolute bottom-6 left-4 md:bottom-10 md:left-6 w-10 md:w-12 h-10 md:h-12 rounded-full border border-pine-900/10 bg-sand-50/60 backdrop-blur-sm" />
             <div className="absolute inset-0 bg-gradient-to-tr from-gold-400/20 to-transparent translate-x-4 translate-y-4 md:translate-x-6 md:translate-y-6 rounded-[200px] border border-gold-400/30 backdrop-blur-xs"></div>
             <motion.img 
-              whileHover={{ scale: 1.02 }}
-              transition={{ duration: 0.7 }}
               src="/violetta.jpg" 
               alt="Виолетта"
               onError={(e) => {
@@ -224,13 +195,7 @@ export function Home() {
         </div>
 
         <div className="md:hidden mt-28 w-full flex justify-center">
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.2 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            className="relative w-full max-w-[360px]"
-          >
+          <div className="relative w-full max-w-[360px]">
             <div className="absolute -inset-3 rounded-[200px] border border-gold-400/20" />
             <div className="absolute inset-0 bg-gradient-to-tr from-gold-400/20 to-transparent translate-x-4 translate-y-4 rounded-[200px] border border-gold-400/30" />
             <img
@@ -241,7 +206,7 @@ export function Home() {
               }}
               className="relative z-10 w-full h-auto object-contain rounded-[200px] block"
             />
-          </motion.div>
+          </div>
         </div>
       </section>
 
@@ -264,26 +229,14 @@ export function Home() {
               <p>
                 Матрица Судьбы — это концепция, которая помогает людям разобраться в своих внутренних конфликтах и понять, почему их жизнь не соответствует их желаниям. Этот инструмент позволяет выявить сильные стороны личности и осознать духовные задачи, которые стоят перед человеком.
               </p>
-              <motion.div
-                initial={{ opacity: 0, y: 12 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.45, ease: "easeOut" }}
-                className="w-full"
-              >
+              <div className="w-full">
                 <div className="max-w-3xl mx-auto mb-6 px-4 text-center">
                   <h3 className="inline-block text-lg sm:text-xl md:text-2xl font-serif text-gold-400 leading-tight text-balance">
                     Матрица Совместимости Раскроет Вам
                   </h3>
                 </div>
 
-                <motion.div
-                  variants={compatibilityCardContainer}
-                  initial="hidden"
-                  whileInView="show"
-                  viewport={{ once: true, amount: 0.25 }}
-                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 text-left items-stretch"
-                >
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 text-left items-stretch">
                   {[
                     "Личные отношения",
                     "Общая энергия пары",
@@ -292,9 +245,8 @@ export function Home() {
                     "Конфликтные точки",
                     "Влияние на детей"
                   ].map((item, index) => (
-                    <motion.div
+                    <div
                       key={item}
-                      variants={compatibilityCardItem}
                       className="relative overflow-hidden rounded-[1.35rem] border border-gold-400/20 bg-sand-50/8 px-4 py-4 shadow-sm min-h-[72px] md:min-h-[78px] flex items-center"
                     >
                       <div className="absolute inset-0 bg-gradient-to-br from-gold-400/10 to-transparent opacity-80 pointer-events-none" />
@@ -306,19 +258,15 @@ export function Home() {
                           {item}
                         </p>
                       </div>
-                    </motion.div>
+                    </div>
                   ))}
-                </motion.div>
-              </motion.div>
-              <motion.div 
-                whileInView={{ scale: [0.95, 1] }} 
-                transition={{ duration: 0.5 }}
-                className="py-8 my-10 border-y border-gold-500/20"
-              >
+                </div>
+              </div>
+              <div className="py-8 my-10 border-y border-gold-500/20">
                 <p className="text-3xl md:text-4xl font-serif text-white">
                   «Почему я не живу так, как мечтаю?»
                 </p>
-              </motion.div>
+              </div>
               <p>
                 Каждый из нас хотя бы раз задавался этим вопросом. Важно понимать, что это не Астрологический гороскоп и не научный метод, это не гадание — а глубокая система самопознания.
               </p>
@@ -364,9 +312,8 @@ export function Home() {
                 key={item.title}
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
-                whileHover={{ scale: 1.01 }}
                 viewport={{ once: true, amount: 0.25 }}
-                transition={{ delay: i * 0.08, duration: 0.48, ease: "easeOut" }}
+                transition={{ duration: 0.32, ease: "easeOut" }}
                 className={[
                   "group relative overflow-hidden rounded-[1.75rem] border border-pine-900/10 bg-white p-6 md:p-7 backdrop-blur-sm transition-colors hover:border-gold-300/35 hover:bg-white/95 hover:shadow-md",
                   i === 0 ? "lg:col-span-5 lg:min-h-[250px]" : "",
@@ -406,16 +353,6 @@ export function Home() {
         <div className="container mx-auto max-w-7xl relative z-10">
           <div className="flex items-center justify-center gap-4 md:gap-6">
             <div className="h-px flex-1 bg-gradient-to-r from-transparent via-gold-400/45 to-gold-400/25" />
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.45, ease: "easeOut" }}
-              className="inline-flex items-center gap-2 rounded-full border border-gold-300/45 bg-white/70 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-gold-700 shadow-sm backdrop-blur-sm"
-            >
-              <Sparkles className="h-4 w-4" />
-              Разборы и тарифы
-            </motion.div>
             <div className="h-px flex-1 bg-gradient-to-l from-transparent via-gold-400/45 to-gold-400/25" />
           </div>
         </div>
@@ -455,22 +392,17 @@ export function Home() {
               key={service.title}
               initial={{ opacity: 0, y: 22 }}
               whileInView={{ opacity: 1, y: 0 }}
-              whileHover={{ y: -5, scale: 1.008 }}
               viewport={{ once: true, amount: 0.2 }}
-              transition={{ delay: i * 0.08, duration: 0.5, ease: "easeOut" }}
+              transition={{ duration: 0.32, ease: "easeOut" }}
               className={`group relative overflow-hidden rounded-[1.75rem] border border-pine-900/10 bg-white/85 p-6 md:p-7 shadow-sm transition-colors duration-300 hover:border-gold-400/70 hover:shadow-lg ${i === 4 ? "lg:col-span-2" : ""}`}
             >
               <div className="absolute inset-0 bg-gradient-to-br from-gold-100/40 via-transparent to-pine-100/30 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
               <div className="relative z-10 flex h-full flex-col">
                 <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
                   <div className="flex items-start gap-4">
-                    <motion.div
-                      whileHover={{ rotate: 8, scale: 1.08 }}
-                      transition={{ type: "spring", stiffness: 260, damping: 16 }}
-                      className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-gold-300/70 bg-gold-50 text-gold-700 [&_svg]:h-5 [&_svg]:w-5"
-                    >
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-gold-300/70 bg-gold-50 text-gold-700 [&_svg]:h-5 [&_svg]:w-5">
                       {service.icon}
-                    </motion.div>
+                    </div>
                     <div>
                       <h3 className="text-2xl md:text-[1.7rem] font-serif text-pine-900 leading-tight">{service.title}</h3>
                       <p className="mt-2 text-xs md:text-sm leading-snug text-pine-800/60 font-light max-w-sm">
@@ -500,7 +432,6 @@ export function Home() {
                   <motion.button
                     type="button"
                     onClick={openContactModal}
-                    whileHover={{ y: -2, scale: 1.03 }}
                     whileTap={{ scale: 0.98 }}
                     className="inline-flex items-center justify-center gap-2 rounded-full border border-pine-900 bg-pine-900 px-7 py-3.5 text-xs font-bold uppercase tracking-widest text-sand-50 shadow-lg shadow-pine-900/15 transition-all hover:-translate-y-0.5 hover:border-pine-800 hover:bg-pine-800 hover:shadow-xl"
                   >
@@ -559,12 +490,8 @@ export function Home() {
               { tag: "клиент", text: "Спасибо тебе большое еще раз ! Очень все понравилось! Было комфортно и интересно! Ты большая умничка!!! Удачи и успехов тебе..." },
               { tag: "клиент", text: "В сегодняшнем разборе всё верно, то что в центре внимания мне нужно быть, так и есть, даже работа такая, соответствует)" }
             ].map((review, idx) => (
-              <motion.div 
+              <div 
                 key={idx} 
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.1 }}
                 className="flex-none w-[85vw] sm:w-[400px] snap-center shrink-0 border border-pine-900/10 bg-white hover:border-gold-300 transition-colors rounded-[2rem] p-8 md:p-10 relative backdrop-blur-sm"
               >
                 <div className="text-gold-300 text-6xl leading-[0] font-serif absolute -top-4 left-6 opacity-30">"</div>
@@ -585,7 +512,7 @@ export function Home() {
                     {review.text}
                   </p>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
           
